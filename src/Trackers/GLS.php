@@ -119,7 +119,7 @@ class GLS extends AbstractTracker
      */
     protected function getRecipient(array $response)
     {
-        return $response['tuStatus'][0]['signature']['value'];
+        return array_key_exists('signature',$response['tuStatus'][0]) ? $response['tuStatus'][0]['signature']['value'] : null;
     }
 
 
