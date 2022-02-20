@@ -1,0 +1,95 @@
+<?php
+
+namespace Sauladam\ShipmentTracker\Trackers;
+
+use Carbon\Carbon;
+use Sauladam\ShipmentTracker\Event;
+use Sauladam\ShipmentTracker\Track;
+
+class PostNord extends AbstractTracker
+{
+
+    /**
+     * @var string
+     */
+    protected $trackingUrl = 'https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json';
+
+    /**
+     * @var string
+     */
+    protected $language = 'en';
+
+    /**
+     * Build the url to the user friendly tracking site. In most
+     * cases this is also the endpoint, but sometimes the tracking
+     * data must be retrieved from another endpoint.
+     *
+     * @param string $trackingNumber
+     * @param string|null $language
+     * @param array $params
+     *
+     * @return string
+     */
+    public function trackingUrl($trackingNumber, $language = null, $params = [])
+    {
+        $language = $language ?: $this->language;
+
+        $additionalParams = !empty($params) ? $params : $this->trackingUrlParams;
+
+        $qry = http_build_query(array_merge([
+            'id' => $trackingNumber,
+            'locale' => $language,
+        ], $additionalParams));
+
+        return $this->trackingUrl . '?' . $qry;
+    }
+
+    /**
+     * Build the response array.
+     *
+     * @param string $response
+     *
+     * @return \Sauladam\ShipmentTracker\Track
+     */
+    protected function buildResponse($response)
+    {
+        $contents = json_decode($response, true)['TrackingInformationResponse']['shipments'][0]['items'][0];
+
+        $track = new Track;
+
+        foreach ($contents['events'] as $event) {
+            $track->addEvent(Event::fromArray([
+                'location'    => array_key_exists('city', $event['location']) ? $event['location']['city'] : $event['location']['displayName'],
+                'description' => $event['eventDescription'],
+                'date'        => $this->getDate($event['eventTime']),
+                'status'      => $status = $this->resolveState($event['status'])
+            ]));
+
+            if ($status == Track::STATUS_DELIVERED && isset($contents['receivedByNm'])) {
+                $track->setRecipient($contents['receivedByNm']);
+            }
+        }
+    }
+
+    private function getDate($eventTime)
+    {
+        return Carbon::parse($eventTime);
+    }
+
+    private function resolveState($status)
+    {
+        switch ($status) {
+            case 'INFORMED':
+            case 'EN_ROUTE':
+            case 'OTHER':
+                return Track::STATUS_IN_TRANSIT;
+            case 'DELIVERED':
+                return Track::STATUS_DELIVERED;
+            case 'AVAILABLE_FOR_DELIVERY':
+                return Track::STATUS_PICKUP;
+            case 'DELIVERY_IMPOSSIBLE':
+            default:
+                return Track::STATUS_UNKNOWN;
+        }
+    }
+}
