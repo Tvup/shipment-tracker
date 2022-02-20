@@ -82,11 +82,9 @@ class PostNord extends AbstractTracker
                 'date'        => $this->getDate($event['eventTime']),
                 'status'      => $status = $this->resolveState($event['status'])
             ]));
-
-            if ($status == Track::STATUS_DELIVERED && isset($contents['receivedByNm'])) {
-                $track->setRecipient($contents['receivedByNm']);
-            }
         }
+
+        return $track->sortEvents();
     }
 
     private function getDate($eventTime)
