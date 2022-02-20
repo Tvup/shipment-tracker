@@ -3,6 +3,7 @@
 namespace Sauladam\ShipmentTracker\Trackers;
 
 use Carbon\Carbon;
+use Sauladam\ShipmentTracker\DataProviders\Registry;
 use Sauladam\ShipmentTracker\Event;
 use Sauladam\ShipmentTracker\Track;
 
@@ -25,9 +26,12 @@ class PostNord extends AbstractTracker
      */
     private $apiKey='';
 
-    public function __construct()
+    /**
+     * @param Registry $providers
+     */
+    public function __construct(Registry $providers)
     {
-        parent::__construct();
+        parent::__construct($providers);
         $this->apiKey = getenv('POSTNORD_API_KEY');
     }
 
