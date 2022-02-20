@@ -27,6 +27,7 @@ class PostNord extends AbstractTracker
 
     public function __construct()
     {
+        parent::__construct();
         $this->apiKey = getenv('POSTNORD_API_KEY');
     }
 
