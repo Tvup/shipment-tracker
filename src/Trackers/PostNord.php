@@ -19,6 +19,18 @@ class PostNord extends AbstractTracker
      */
     protected $language = 'en';
 
+
+    /**
+     * @var string
+     */
+    private $apiKey='';
+
+    public function __construct()
+    {
+        $this->apiKey = getenv('POSTNORD_API_KEY');
+    }
+
+
     /**
      * Build the url to the user friendly tracking site. In most
      * cases this is also the endpoint, but sometimes the tracking
@@ -37,6 +49,7 @@ class PostNord extends AbstractTracker
         $additionalParams = !empty($params) ? $params : $this->trackingUrlParams;
 
         $qry = http_build_query(array_merge([
+            'apikey' => $this->apiKey,
             'id' => $trackingNumber,
             'locale' => $language,
         ], $additionalParams));
