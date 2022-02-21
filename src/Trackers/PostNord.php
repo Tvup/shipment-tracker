@@ -76,8 +76,16 @@ class PostNord extends AbstractTracker
         $track = new Track;
 
         foreach ($contents['events'] as $event) {
+            $location = '';
+            if(array_key_exists('city', $event['location'])) {
+                $location = $event['location']['city'];
+            } else if (array_key_exists('displayName', $event['location'])) {
+                $location = $event['location']['displayName'];
+            } else {
+                $location = $event['location']['country'];
+            }
             $track->addEvent(Event::fromArray([
-                'location'    => array_key_exists('city', $event['location']) ? $event['location']['city'] : $event['location']['displayName'],
+                'location'    => $location,
                 'description' => $event['eventDescription'],
                 'date'        => $this->getDate($event['eventTime']),
                 'status'      => $status = $this->resolveState($event['status'])
