@@ -63,6 +63,9 @@ class Bring extends AbstractTracker
             if(array_key_exists('city', $event)) {
                 $location = $event['city'];
             }
+            if('DELIVERY_CHANGED' == $event['status']) {
+                continue;
+            }
             $track->addEvent(Event::fromArray([
                 'location'    => $location,
                 'description' => $event['description'],
