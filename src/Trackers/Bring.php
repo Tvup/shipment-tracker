@@ -13,7 +13,8 @@ class Bring extends AbstractTracker
     /**
      * @var string
      */
-    protected $trackingUrl = 'https://tracking.bring.com/api/v2/tracking.json';
+    //protected $trackingUrl = 'https://tracking.bring.com/api/v2/tracking.json';
+    protected $trackingUrl = 'https://api.bring.com/tracking/api/v2/tracking.json';
 
     /**
      * @var string
@@ -75,6 +76,45 @@ class Bring extends AbstractTracker
         }
 
         return $track->sortEvents();
+    }
+
+    /**
+     * Get the contents of the given url.
+     *
+     * @param string $url
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function fetch($url)
+    {
+        try {
+            return $this->getDataProvider()->client->post($url, $this->buildRequest())
+                ->getBody()
+                ->getContents();
+
+        } catch (\Exception $e) {
+            throw new \Exception("Could not fetch tracking data for [{$this->parcelNumber}].");
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function buildRequest()
+    {
+        return [
+            'headers' => [
+                'Accept' => 'application/json',
+                'X-Mybring-API-Uid' => 'teh@dkwebshops.dk',
+                'X-Mybring-API-Key' => 'e288d2e0-6064-4b01-b36d-d290856a2cee',
+                //'X-Bring-Client-URL' => '',
+            ],
+
+            'form_params' => [
+                'data'   => $this->buildDataArray(),
+            ],
+        ];
     }
 
     private function getDate($eventTime)
