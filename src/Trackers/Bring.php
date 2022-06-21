@@ -89,7 +89,7 @@ class Bring extends AbstractTracker
     protected function fetch($url)
     {
         try {
-            return $this->getDataProvider()->client->post($url, $this->buildRequest())
+            return $this->getDataProvider()->client->get($url, $this->buildRequest())
                 ->getBody()
                 ->getContents();
 
@@ -111,9 +111,6 @@ class Bring extends AbstractTracker
                 //'X-Bring-Client-URL' => '',
             ],
 
-            'form_params' => [
-                'data'   => $this->buildDataArray(),
-            ],
         ];
     }
 
